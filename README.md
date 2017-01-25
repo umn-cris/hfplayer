@@ -19,7 +19,7 @@ This project has been sponsered by Center for Research in Intelligent Storage (C
 
 Setup
 ========
-Setup involves regural Linux make procedure. libaio library is required for builing the tool.
+Setup involves regural Linux make procedure. libaio-dev and libboost-graph-dev library packages is required for builing the tool in addition to regular build essentials. 
 
 
 Run
