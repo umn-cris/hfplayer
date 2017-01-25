@@ -95,4 +95,4 @@ ${PGMS1} : % : %.o ${COMMON_OBJS}
 	c++ ${CCFLAGS} $^ -o $@
 
 .cc.o: ${MOD}.h ${MOD}Schema.h
-	c++ ${CCFLAGS} -c $< -o $@
+	c++ ${CCFLAGS} -c ${SRC}/$< -o $@

@@ -25,6 +25,14 @@ Setup involves regural Linux make procedure. libaio library is required for buil
 Run
 ========
 A sample run shell script is provided in bin directory. run hfplayer and depAnalyser to get more usage details. 
+Running hfplayer:
+1. Check disk information: sudo fdisk -l
+2. Find an applicable disk partition, e.g. /dev/sda1
+3. Change the sampleConf-sda8.cvs file in bin/ using the selected partition 
+4. Change to suitable lun numbers in the sampleConf-sda8.cvs 
+4. [optional] Change the limitations of request sizes, timestamps and offset in the configuration file "sampleConf-sda8.cvs "
+5. Go to bin/, type "./run.sh" to run the tool.
+
 
 
 Support

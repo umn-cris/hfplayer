@@ -1,6 +1,3 @@
-/* HFPlayer 3.0 Source Code
-   © Regents of the University of Minnesota. 
-   This software is licensed under GPL version 3.0 (https://www.gnu.org/licenses/gpl-3.0.en.html). */
 /**
  **     File:  IOLogDumpSchema.h
  **    Authors:  Sai Susarla, Jerry Fredin
@@ -12,9 +9,9 @@
  **    Licensed under the Apache License, Version 2.0 (the "License");
  **    you may not use this file except in compliance with the License.
  **    You may obtain a copy of the License at
- **
+ **		  
  **    http://www.apache.org/licenses/LICENSE-2.0
- **
+ **				 
  **    Unless required by applicable law or agreed to in writing, software
  **    distributed under the License is distributed on an "AS IS" BASIS,
  **    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -37,16 +34,14 @@
 #define DATA_START_OFFSET	4096
 #define LUN_FIELD			"lun_ssid"
 
-typedef void (*RecParser_fn_t)(struct IOLogDump* dump, void* buf, DRecordData& drecdata);
-typedef struct IOLogDumpRecMeta
-{
-    DRecordSchema* schema;
+typedef void (*RecParser_fn_t)(struct IOLogDump *dump, void *buf, DRecordData& drecdata);
+typedef struct IOLogDumpRecMeta {
+    DRecordSchema *schema;
     RecParser_fn_t to_native_fn;
-    unsigned dumpsize;
+    int dumpsize;
 } IOLogDumpRecMeta_t;
 
-typedef struct IOLogDumpFixedHeader
-{
+typedef struct IOLogDumpFixedHeader {
     ULONG sig;
     USHORT version_minor;
     USHORT version_major;
