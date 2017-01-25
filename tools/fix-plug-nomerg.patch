@@ -1,0 +1,11 @@
+--- block/blk-core.c.orig	2013-10-22 15:26:59.484961156 -0500
++++ block/blk-core.c	2013-10-21 23:24:21.437887017 -0500
+@@ -1420,7 +1420,7 @@ static bool attempt_plug_merge(struct re
+ 	bool ret = false;
+ 
+ 	plug = current->plug;
+-	if (!plug)
++	if (!plug || blk_queue_nomerges(q) )
+ 		goto out;
+ 	*request_count = 0;
+ 

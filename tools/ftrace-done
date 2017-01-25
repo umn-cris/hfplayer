@@ -1,0 +1,8 @@
+#!/bin/bash
+  echo 0 > /sys/kernel/debug/tracing/options/stacktrace
+  cp /sys/kernel/debug/tracing/trace /tmp/
+  cp /sys/kernel/debug/tracing/stack_trace /tmp/
+  echo 0 > /proc/sys/kernel/stack_tracer_enabled
+  echo "trace collection done, check /tmp/trace"
+  echo nop > /sys/kernel/debug/tracing/current_tracer
+  echo -e  "current_tracer: `cat /sys/kernel/debug/tracing/current_tracer`"

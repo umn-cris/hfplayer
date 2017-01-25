@@ -1,0 +1,24 @@
+#!/bin/bash
+#This script generates an IO pattern, captures a trace of it, and then
+#replays it an captures the replay trace also.
+
+# Clean up any old files
+set -x #show executed command in stdout
+rm -f $1-s-*
+rm -f $1-t-*
+	
+./StartStopNetIP1IP2 -stop
+sleep 2
+./StartStopNetIP1IP2 -start
+./avgInFlight.sh $1 &
+echo "nice -n $3 ./btreplay_$2 -W -v  $1 "
+nice -n $3 ./btreplay_$2 -W -v  $1 
+
+sleep 2
+#Auto kill avgInglight
+#kill -9 %1
+./StartStopNetIP1IP2 -finish $1-t- $1-s-
+sleep 2
+
+exit 0
+

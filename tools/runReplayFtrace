@@ -1,0 +1,35 @@
+#!/bin/bash
+#This script generates an IO pattern, captures a trace of it, and then
+#replays it an captures the replay trace also.
+
+# Clean up any old files
+set -x #show executed command in stdout
+
+
+if [ "$#" -ne "6" ] ; then
+	echo "insufficient input parameter for RunReplay.sh"
+	exit 100
+fi
+
+ORIG_TRC=$3
+rm -f Trace-$ORIG_TRC.*
+rm -f Stats-$ORIG_TRC.*
+	
+./stop7273 2>&1 /dev/null
+sleep 2
+./start7273 2>&1 /dev/null
+./avgInFlight.sh  $4 &
+echo "./ftrace-me hfplayer -nt $1 -q $2 -cfg  ReplayCfg.csv $ORIG_TRC "
+./ftrace-me hfplayer -nt $1 -q $2 -cfg  ReplayCfg.csv $ORIG_TRC 
+./ftrace-done
+
+sleep 2
+kill -9 %1
+./stop7273  2>&1 /dev/null 
+sleep 2
+
+./copydump.pl /dev/$5 Trace-$ORIG_TRC.raw
+./copydump.pl /dev/$6 Stats-$ORIG_TRC.raw
+./parsedump   Trace-$ORIG_TRC.raw  
+exit 0
+

@@ -1,0 +1,27 @@
+#!/bin/bash
+#This script generates an IO pattern, captures a trace of it, and then
+#replays it an captures the replay trace also.
+
+# Clean up any old files
+set -x #show executed command in stdout
+rm -f Trace-$1.*
+rm -f Stats-$1.*
+	
+./stop7273
+sleep 2
+./start7273
+
+./avgInFlight.sh $2 &
+fio $1
+
+sleep 2
+kill -9 %1  
+./stop7273
+sleep 2
+
+./copydump.pl /dev/sdb Trace-$1.raw
+./copydump.pl /dev/sdc Stats-$1.raw
+./parsedump   Trace-$1.raw  
+
+	exit
+

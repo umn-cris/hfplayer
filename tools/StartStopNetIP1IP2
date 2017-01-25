@@ -1,0 +1,287 @@
+#!/bin/bash
+:<<=cut
+=pod
+
+=head1 NAME
+    StartStopNetxxyy
+    
+=head1 DESCRIPTION
+    This script takes two predefined IP addresses and uses the shellCmd
+    utility to start trace and statistic network capture.  It can also be executed with the
+    -r option to print the revision of the script.  This is the boilerplate file, it needs
+    to be modified by adding the IP addresses of the controllers being used.
+                    
+=head1 VERSION
+    version 3.0
+             
+=head1 CREATED BY
+    Tim Snider
+                         
+=head1 LAST MODIFIED BY
+    Jerry Fredin
+=cut
+#
+#   Copyright 2013, NetApp, Inc. All rights reserved.
+#
+#  Change History
+#
+#  10/17/2012   Tim Snider  Revision 1.0 - Use startCap.sh as base and modify to add
+#                               WLC Network logging capability
+#
+#  07/10/2013   Jerry Fredin Revision 1.1 - Updated to run remote collection of trace data.
+#
+#  08/5/2013    Ibra Fall    Revision 2.01 - Merged start and stop into one file. A command 
+#               Jerry Fredin    line switch selects which operation to perform.  Error 
+#                               checks are now made and an attempt to stop the capture is 
+#                               made if an error is detected on start.
+#
+#               Jerry Fredin    Revision 3.00 - Final changes have been tested, ready to move
+#                               to source control.  Added a finish option that copies the files
+REV="3.00"
+
+#**************************************************************
+#**
+#**  These variables need to be modified for your environment
+#**  The comments below show examples.  The current configuration
+#**  settings are what need to be modified.
+#**
+#**************************************************************
+
+#Aip=10.113.193.xx
+#Bip=10.113.193.yy
+#Trace=NetTrace7778
+#Stats=NetStats7778
+#TracePort="10005"
+#StatsPort="10006"
+#CLIENTip=10.113..19.214
+
+#**  Current configuration settings
+
+Aip=10.113.208.114
+#Aip=10.113.211.16
+Bip=10.113.208.115
+#Bip=10.113.211.17
+TraceFile=NetTrace114115
+StatsFile=NetStats114115
+TracePort="10005"
+StatsPort="10006"
+CLIENTip=10.113.211.7
+#**************************************************************
+#**
+#**  Functions used by the main script
+#**
+#**************************************************************
+checkErrorsAndStop() {
+     if [ "$(grep -i "failed" results.txt)" ] || [ "$(grep -i "error" results.txt)" ] || [ "$(grep -i "not enabled" results.txt)" ]; then
+         echo "shellCmd failed while attempting to start the capture."
+         stopNetCap
+         return 1
+     fi
+     return 0
+}
+
+stopNetCap(){
+# Issue commands for Controller A
+echo "Stop workload capture on controller A $Aip" 
+./shellCmd 'ioLogger,"stop"' $Aip > /dev/null
+./shellCmd 'ioLogger,"flush"' $Aip > /dev/null
+./shellCmd 'ioLogger,"net disable"' $Aip > /dev/null
+./shellCmd 'perfLogger,"stop"' $Aip > /dev/null
+./shellCmd 'perfLogger,"flush"' $Aip > /dev/null
+./shellCmd 'perfLogger,"net disable"' $Aip > /dev/null
+
+# Issue commands for Controller B
+echo "Stop workload capture on controller B $Bip" 
+./shellCmd 'ioLogger,"stop"' $Bi > /dev/null
+./shellCmd 'ioLogger,"flush"' $Bip > /dev/null
+./shellCmd 'ioLogger,"net disable"' $Bip > /dev/null
+./shellCmd 'perfLogger,"stop"' $Bip > /dev/null
+./shellCmd 'perfLogger,"flush"' $Bip > /dev/null
+./shellCmd 'perfLogger,"net disable"' $Bip > /dev/null
+}
+
+startNetCap(){
+# Issue commands for Controller A
+echo "Start workload capture on controller A $Aip" 
+./shellCmd 'ioLogger,"net enable '$TracePort'"' $Aip >> results.txt
+if [ $? != 0 ] ; then
+    return 1
+fi
+./shellCmd 'ioLogger,"start"' $Aip >> results.txt
+if [ $? != 0 ] ; then
+    return 1
+fi
+./shellCmd 'perfLogger,"net enable '$StatsPort'"' $Aip >> results.txt
+if [ $? != 0 ] ; then
+    return 1
+fi
+./shellCmd 'perfLogger,"start"' $Aip >> results.txt
+if [ $? != 0 ] ; then
+    return 1
+fi
+
+# Issue commands for Controller B
+echo "Start workload capture on controller B $Bip"
+./shellCmd 'ioLogger,"net enable '$TracePort'"' $Bip >> results.txt
+if [ $? != 0 ] ; then
+    return 1
+fi
+./shellCmd 'ioLogger,"start"' $Bip >> results.txt
+if [ $? != 0 ] ; then
+    return 1
+fi
+./shellCmd 'perfLogger,"net enable '$StatsPort'"' $Bip >> results.txt
+if [ $? != 0 ] ; then
+    return 1
+fi
+./shellCmd 'perfLogger,"start"' $Bip >> results.txt
+if [ $? != 0 ] ; then
+    return 1
+fi
+
+}
+
+getCapFiles() {
+
+scp root@${CLIENTip}:/root/${TraceFile}A.raw ./${TracePrefix}A.raw
+if [ $? != 0 ] ; then
+    return 1
+fi
+scp root@${CLIENTip}:/root/${TraceFile}B.raw ./${TracePrefix}B.raw
+if [ $? != 0 ] ; then
+    return 1
+fi
+scp root@${CLIENTip}:/root/${StatsFile}A.raw ./${StatsPrefix}A.raw
+if [ $? != 0 ] ; then
+    return 1
+fi
+scp root@${CLIENTip}:/root/${StatsFile}B.raw ./${StatsPrefix}B.raw
+if [ $? != 0 ] ; then
+    return 1
+fi
+
+./parsedump ${TracePrefix}A.raw 
+if [ $? != 0 ] ; then
+    return 1
+fi
+./parsedump ${TracePrefix}B.raw
+if [ $? != 0 ] ; then
+    return 1
+fi
+./parsedump ${StatsPrefix}A.raw
+if [ $? != 0 ] ; then
+    return 1
+fi
+./parsedump ${StatsPrefix}B.raw
+if [ $? != 0 ] ; then
+    return 1
+fi    
+
+
+return 0
+}
+#**************************************************************
+#**
+#**  Script execution starts here
+#**
+#**************************************************************
+
+if [ "$1" = "-r" ]; then       
+	   echo "You are executing revision $REV of $0"
+       exit                    
+fi 
+if [ -e "results.txt" ]; then
+    rm results.txt
+fi
+if [ "X$Aip" = "X" ]; then
+      echo "IP address for controller A is not defined."
+      error=1
+fi
+
+if [ "X$Bip" = "X" ]; then
+      echo "IP address for controller B is not defined."
+      error=1
+fi
+ 
+if [ "X$TracePort" = "X" ]; then
+      echo "The Port Number for Trace is not defined."
+      error=1
+fi
+
+if [ "X$StatsPort" = "X" ]; then
+      echo "The Port Number for Stats is not defined."
+      error=1
+fi
+
+if [ "X$TraceFile" = "X" ]; then
+      echo "The trace file name is not defined."
+      error=1
+fi
+
+if [ "X$StatsFile" = "X" ]; then
+      echo "The stats file name is not defined."
+      error=1
+fi
+
+if [[ $error -eq 1 ]]; then
+    echo "usage: $0  <-r> <-start> <-stop>"
+    echo "-r = Print revision and exit."
+    echo "-start = Start the workload capture."
+    echo "-stop = Stop the workload capture."
+    exit
+fi
+
+#Start controllers specified by $Aip and $Bip
+if [ "$1" = "-start" ]; then
+ssh root@$CLIENTip "rm ${TraceFile}A.raw"
+ssh root@$CLIENTip "rm ${TraceFile}B.raw"
+ssh root@$CLIENTip "rm ${StatsFile}A.raw"
+ssh root@$CLIENTip "rm ${StatsFile}B.raw"
+
+startNetCap
+# if [ $? != 0 ]; then
+#     echo "shellCmd couldn't send command to $Aip or $Bip"
+#     exit 1 
+# fi
+    checkErrorsAndStop
+ if [ $? != 0 ] ; then
+     exit 1
+ fi
+
+
+sleep 10
+
+echo "Start WLC Clients"
+
+# Start WLC listening Clients
+ssh root@$CLIENTip "wlcHostClient $Aip $TracePort ${TraceFile}A.raw >> /tmp/mylogfile 2>&1 &"
+ssh root@$CLIENTip "wlcHostClient $Aip $StatsPort ${StatsFile}A.raw >> /tmp/mylogfile 2>&1 &"
+ssh root@$CLIENTip "wlcHostClient $Bip $TracePort ${TraceFile}B.raw >> /tmp/mylogfile 2>&1 &"
+ssh root@$CLIENTip "wlcHostClient $Bip $StatsPort ${StatsFile}B.raw >> /tmp/mylogfile 2>&1 &"
+
+#** This is an alternate way to start the clients, not currently used.
+#ssh root@$CLIENTip "/root/start4Clients.sh $Aip $Bip $TracePort $StatsPort $TraceFile $StatsFile"
+
+#Stop controllers specified by $Aip and $Bip
+elif [ "$1" = "-stop" ]; then
+stopNetCap
+
+elif [ "$1" = "-finish" ]; then
+TracePrefix=$2
+StatsPrefix=$3
+stopNetCap
+getCapFiles
+    if [ $? != 0 ]; then
+        echo "Error retrieving captured files"
+    fi
+
+#Exit if wrong argument is entered
+else
+    echo "usage: $0  <-r> <-start> <-stop> <-finish>"
+    echo "-r = Print revision and exit."
+    echo "-start = Start the workload capture."
+    echo "-stop = Stop the workload capture."
+    echo "-finish = Stop capture and get files."
+fi
+
+exit

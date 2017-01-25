@@ -1,0 +1,20 @@
+digraph G {
+graph [bgcolor=transparent]
+graph [rankdir=LR]
+0 [label="4096"];
+1 [label="4124"];
+2 [label="4152"];
+3 [label="4208"];
+4 [label="4572"];
+5 [label="4600"];
+6 [label="4628"];
+7 [label="4712"];
+1->0 ;
+2->0 ;
+3->2 ;
+3->1 ;
+4->3 ;
+5->4 ;
+6->4 ;
+7->4 ;
+}

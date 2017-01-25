@@ -1,0 +1,22 @@
+#!/bin/sh
+# FTrace me , script developed by Alireza Haghdoost
+# this script should follow up with Ftrace-done.sh script
+  set -x 
+  echo "Running ftrace on $@"
+  DEBUGFS=/sys/kernel/debug
+  #echo $$ > $DEBUGFS/tracing/set_ftrace_pid
+  echo  > $DEBUGFS/tracing/set_ftrace_pid
+  echo 0 > $DEBUGFS/tracing/trace
+  echo 0 > $DEBUGFS/tracing/stack_trace
+  #echo 0 > $DEBUGFS/tracing/tracing_max_latency
+  echo function_graph > $DEBUGFS/tracing/current_tracer
+  #echo function > $DEBUGFS/tracing/current_tracer
+  #echo irqsoff > $DEBUGFS/tracing/current_tracer
+  #echo 1 > $DEBUGFS/tracing/options/latency-format
+  #echo 1 > /proc/sys/kernel/stack_tracer_enabled
+  #echo 0 > $DEBUGFS/tracing/options/stacktrace
+  #echo 0 > $DEBUGFS/tracing/options/userstacktrace
+  echo 1 > $DEBUGFS/tracing/tracing_on
+  #after exec process do nothing
+  exec $*
+  #follow up in Ftrace-done.sh

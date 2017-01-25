@@ -1,0 +1,33 @@
+#!/bin/bash
+#This script generates an IO pattern, captures a trace of it, and then
+#replays it an captures the replay trace also.
+
+# Clean up any old files
+set -x #show executed command in stdout
+
+
+if [ "$#" -ne "7" ] ; then
+	echo "insufficient input parameter for RunReplay.sh"
+    echo "Use Case: ./runReplay tno maxin Trace SD SDTRACE SDSTAT iat"
+	exit 100
+fi
+
+ORIG_TRC=$3
+rm -f $3-t-*
+rm -f $3-s-*
+	
+./StartStopNetIP1IP2 -stop # >>/dev/null 2>&1
+sleep 10
+./StartStopNetIP1IP2 -start # >>/dev/null 2>&1
+
+./avgInFlight.sh  $4 &
+echo  "./hfplayer -nt $1 -q $2 -b $7 -cfg  ReplayCfg.csv $ORIG_TRC "
+./hfplayer -nt $1 -q $2 -b $7 -cfg  ReplayCfg.csv $ORIG_TRC 
+# avgInflight.sh is killed automatically
+#kill -9 %1
+
+sleep 2
+./StartStopNetIP1IP2 -finish $3-t- $3-s- #>>/dev/null 2>&1
+
+exit 0
+
