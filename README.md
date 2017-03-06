@@ -44,7 +44,7 @@ https://github.com/umn-cris/hfplayer/issues
 Citation
 =========
 This work is presented first in the 15th USENIX Conference on File and Storage Technologies (FAST'17). 
-https://www.usenix.org/conference/fast17/technical-sessions 
+https://www.usenix.org/conference/fast17/technical-sessions/presentation/haghdoost
 
 License
 =======
